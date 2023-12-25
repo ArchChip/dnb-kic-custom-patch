@@ -1,9 +1,10 @@
-Scriptname SBBathSpellScript extends activemagiceffect  
+Scriptname SBBathSpellScriptWithWaterCheck extends activemagiceffect  
 ;===============  PROPERTIES  ==========================================;
 Actor Property PlayerREF Auto
 Message Property CleanMessage Auto
 Message Property CleanRelaxMessage Auto
 Message Property NoInnMessage Auto
+Message Property NoWaterMessage Auto
 Potion Property Soap Auto
 Spell Property CleanSpell Auto 
 Spell Property CleanRelaxSpell Auto 
@@ -22,6 +23,7 @@ Quest Property SBBATHAliases Auto
 ;===============  Utilities   ==========================================;
 Import Utility
 Import Math
+Import SBBathWaterCheck
 ;===============  VARIABLES   ==========================================;
 Spell SpellForm
 Actor TeammateActor
@@ -52,46 +54,54 @@ EndIf
 EndEvent
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
-If !IsSitting
-	If ((WaterRestriction.GetValue())as Int) != 1 && SBBATHSoapItemList.HasForm(Soap)
-		If PlayerREF.GetCurrentLocation().HasKeyword(LocTypeShowerInInns);
-			if akTarget == PlayerRef ;instead of Game.GetPlayer
+If IsInWater(akTarget)
+	If !IsSitting
+		If ((WaterRestriction.GetValue())as Int) != 1 && SBBATHSoapItemList.HasForm(Soap)
+			If PlayerREF.GetCurrentLocation().HasKeyword(LocTypeShowerInInns);
+				if akTarget == PlayerRef ;instead of Game.GetPlayer
 
-			; Take a snapshot of the time when soap effect is applied
-			Lastwashingtime.SetValue(GetCurrentGameTime())
-			SBBATHLocationDirtyTimeVariation.SetValue(0)
-			; add clean and soap effect
+				; Take a snapshot of the time when soap effect is applied
+				Lastwashingtime.SetValue(GetCurrentGameTime())
+				SBBATHLocationDirtyTimeVariation.SetValue(0)
+				; add clean and soap effect
 
-			PlayerREF.AddSpell(CleanRelaxSpell, false)
-			CleanRelaxMessage.Show()
-			PlayerREF.AddSpell(BathSpell, false)
-
-			endif
-		Else
-		akCaster.AddItem(Soap As Potion, 1, abSilent = True)
-		EndIf
-	Else
-		if akTarget == PlayerRef ;instead of Game.GetPlayer
-	
-			; Take a snapshot of the time when soap effect is applied
-			Lastwashingtime.SetValue(GetCurrentGameTime())
-			SBBATHLocationDirtyTimeVariation.SetValue(0)
-		
-			; add clean and soap effect
-
-			If PlayerREF.GetCurrentLocation().HasKeyword(LocTypeShowerInInns) && SBBATHSoapItemList.HasForm(Soap)
 				PlayerREF.AddSpell(CleanRelaxSpell, false)
 				CleanRelaxMessage.Show()
+				PlayerREF.AddSpell(BathSpell, false)
+
+				endif
 			Else
-				PlayerREF.AddSpell(CleanSpell, false)
-				CleanMessage.Show()
+			akCaster.AddItem(Soap As Potion, 1, abSilent = True)
 			EndIf
-			PlayerREF.AddSpell(BathSpell, false)
+		Else
+			if akTarget == PlayerRef ;instead of Game.GetPlayer
 		
-		endif
+				; Take a snapshot of the time when soap effect is applied
+				Lastwashingtime.SetValue(GetCurrentGameTime())
+				SBBATHLocationDirtyTimeVariation.SetValue(0)
+			
+				; add clean and soap effect
+
+				If PlayerREF.GetCurrentLocation().HasKeyword(LocTypeShowerInInns) && SBBATHSoapItemList.HasForm(Soap)
+					PlayerREF.AddSpell(CleanRelaxSpell, false)
+					CleanRelaxMessage.Show()
+				Else
+					PlayerREF.AddSpell(CleanSpell, false)
+					CleanMessage.Show()
+				EndIf
+				PlayerREF.AddSpell(BathSpell, false)
+			
+			endif
+		EndIf
+	Else
+		akCaster.AddItem(Soap As Potion, 1, abSilent = True)	
 	EndIf
 Else
-	akCaster.AddItem(Soap As Potion, 1, abSilent = True)	
+	akCaster.AddItem(Soap As Potion, 1, abSilent = True)
+
+	if akTarget == PlayerRef
+		NoWaterMessage.Show()
+	endif
 EndIf
 EndEvent
 ;===============    Functions  ==========================================;

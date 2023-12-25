@@ -24,19 +24,22 @@ Keyword Property VendorItemArrow Auto
 ;===============  Utilities   ==========================================;
 Import Debug
 Import Game
+Import SBBathWaterCheck
 ;===============    EVENTS    ==========================================;
 Event OnEffectStart(Actor akTarget, Actor akCaster)
-If (PlayerREF.GetSitState() == 0)
-	If ((WaterRestriction.GetValue())as Int) != 1;check water restriction
-		If PlayerREF.GetCurrentLocation().HasKeyword(LocTypeShowerInInns);check if the player is in bathroom
-			If akTarget == PlayerRef
-				WashAnimation()
+If IsInWater(akTarget)
+	If (PlayerREF.GetSitState() == 0)
+		If ((WaterRestriction.GetValue())as Int) != 1;check water restriction
+			If PlayerREF.GetCurrentLocation().HasKeyword(LocTypeShowerInInns);check if the player is in bathroom
+				If akTarget == PlayerRef
+					WashAnimation()
+				Endif
 			Endif
-		Endif
-	Else
-		if akTarget == PlayerRef
-			WashAnimation()
-		endif
+		Else
+			if akTarget == PlayerRef
+				WashAnimation()
+			endif
+		EndIf
 	EndIf
 EndIf
 EndEvent
@@ -300,7 +303,7 @@ Function EquipGear(Actor target)
 	;--------------------------------------------------------------
 EndFunction
 
-	
+
 Function AddDawnguardAmmo()
 	SBBAthAmmoList.AddForm(game.GetFormFromFile(2995, "Dawnguard.esm"))
 	SBBAthAmmoList.AddForm(game.GetFormFromFile(61856, "Dawnguard.esm"))
